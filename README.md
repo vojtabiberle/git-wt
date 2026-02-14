@@ -3,9 +3,9 @@
 Git worktree helper that combines worktree creation, setup, and navigation into a single command.
 
 ```bash
-wt add vb/DMD-123-feature master   # create worktree + cd into it
-wt cd vb/DMD-123-feature           # cd into existing worktree
-wt rm vb/DMD-123-feature           # remove worktree
+wt add feature/login master   # create worktree + cd into it
+wt cd feature/login           # cd into existing worktree
+wt rm feature/login           # remove worktree
 wt ls                              # list worktrees
 ```
 
@@ -48,15 +48,15 @@ git-wt uses two shell-sourceable config files in each project's repo root:
 
 ```bash
 WORKTREE_DIR=".."
-WORKTREE_PREFIX="connection"
-WORKTREE_SETUP=("bin/worktree-setup")
+WORKTREE_PREFIX="myapp"
+WORKTREE_SETUP=("./setup.sh")
 ```
 
 **`worktree.conf.local`** — personal overrides (gitignored):
 
 ```bash
 WORKTREE_DIR="/home/me/worktrees"
-WORKTREE_SETUP=("bin/worktree-setup" "direnv allow")
+WORKTREE_SETUP=("./setup.sh" "direnv allow")
 ```
 
 The script sources `worktree.conf` first, then `worktree.conf.local`. Later values fully replace earlier ones.
@@ -73,9 +73,9 @@ The script sources `worktree.conf` first, then `worktree.conf.local`. Later valu
 
 Format: `<base>/<prefix>-<sanitized-branch>`
 
-Branch `vb/DMD-123-feature` with prefix `connection` and base `..`:
+Branch `feature/login` with prefix `myapp` and base `..`:
 ```
-../connection-vb-dmd-123-feature
+../myapp-feature-login
 ```
 
 Sanitization: `/` becomes `-`, everything lowercased.

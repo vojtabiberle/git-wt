@@ -310,7 +310,7 @@ CONFIGURATION
         WORKTREE_SETUP=(...)        Commands to run after creating a worktree
 
     Directory naming: <base>/<prefix>-<sanitized-branch>
-    Example: ../connection-vb-dmd-123-feature
+    Example: ../myapp-feature-login
 
 INSTALLATION
     # Add to PATH:
@@ -332,14 +332,14 @@ SHELL WRAPPER (for cd support)
         wt rm / wt ls / wt init     Same as git wt equivalents
 
 EXAMPLES
-    git wt add vb/DMD-123-feature master
+    git wt add feature/login master
     git wt ls
-    git wt rm vb/DMD-123-feature
+    git wt rm feature/login
     git wt init
 
     # With shell wrapper:
-    wt add vb/DMD-123-feature master   # creates + cd's into worktree
-    wt cd vb/DMD-123-feature           # cd into existing worktree
+    wt add feature/login master   # creates + cd's into worktree
+    wt cd feature/login           # cd into existing worktree
 HELP
 }
 
