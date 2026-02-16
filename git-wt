@@ -148,6 +148,15 @@ cmd_add() {
         info "Branch '$branch' exists, checking out into worktree..."
         git worktree add "$wt_path" "$branch"
     else
+        # Check if branch exists on origin when no source was specified
+        if [[ -z "$source" ]] && git show-ref --verify --quiet "refs/remotes/origin/$branch" 2>/dev/null; then
+            warn "Branch '$branch' not found locally, but exists on ${CYAN}origin${NC}."
+            read -rp "Use origin/$branch? [Y/n] " answer
+            if [[ "$answer" != [nN] ]]; then
+                source="origin/$branch"
+            fi
+        fi
+
         if [[ -n "$source" ]]; then
             info "Creating branch '$branch' from '$source'..."
             git worktree add -b "$branch" "$wt_path" "$source"

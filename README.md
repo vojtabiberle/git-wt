@@ -33,7 +33,7 @@ git config --global alias.wt '!git-wt'
 
 | Command | Description |
 |---|---|
-| `wt add <branch> [source]` | Create a worktree for `<branch>`, optionally from `[source]` branch |
+| `wt add <branch> [source]` | Create a worktree for `<branch>`, optionally from `[source]` branch. If the branch exists only on `origin`, prompts to use it |
 | `wt rm [branch]` | Remove a worktree. Without args, removes the current one |
 | `wt cd <branch>` | cd into an existing worktree |
 | `wt ls` | List all worktrees (`git worktree list`) |
@@ -79,6 +79,21 @@ Branch `feature/login` with prefix `myapp` and base `..`:
 ```
 
 Sanitization: `/` becomes `-`, everything lowercased.
+
+## Remote branch detection
+
+When you `wt add` a branch that doesn't exist locally but exists on `origin`, the script prompts you:
+
+```
+$ wt add jirka/DMD-875/fix-autority-typo
+[wt] Branch 'jirka/DMD-875/fix-autority-typo' not found locally, but exists on origin.
+Use origin/jirka/DMD-875/fix-autority-typo? [Y/n]
+```
+
+- **Y** (default) — creates the worktree tracking the remote branch
+- **n** — creates a new branch from HEAD instead
+
+This check is skipped when you explicitly provide a `[source]` argument.
 
 ## How it works
 
