@@ -104,8 +104,8 @@ find_worktree_path() {
     git worktree list --porcelain | awk -v branch="$branch" '
         /^worktree / { path = substr($0, 10) }
         /^branch refs\/heads\// {
-            b = substr($0, 21)
-            if (b == branch) { print path; exit }
+            sub(/^branch refs\/heads\//, "")
+            if ($0 == branch) { print path; exit }
         }
     '
 }
@@ -181,7 +181,15 @@ cmd_add() {
 }
 
 cmd_rm() {
-    local branch="${1:-}"
+    local branch=""
+    local force=false
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --force|-f) force=true; shift ;;
+            *) branch="$1"; shift ;;
+        esac
+    done
 
     if [[ -z "$branch" ]]; then
         # Try to auto-detect from current worktree
@@ -199,7 +207,11 @@ cmd_rm() {
     fi
 
     info "Removing worktree at: $wt_path"
-    git worktree remove "$wt_path"
+    if $force; then
+        git worktree remove --force "$wt_path"
+    else
+        git worktree remove "$wt_path"
+    fi
     info "Worktree removed"
 }
 
