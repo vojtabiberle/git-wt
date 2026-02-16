@@ -6,6 +6,16 @@
 #   wt cd  <branch>            - cd into existing worktree
 #   wt rm / wt ls / wt init    - pass through to git wt
 
+# Load completions
+_git_wt_dir="${BASH_SOURCE[0]:-${(%):-%x}}"
+_git_wt_dir="$(cd "$(dirname "$_git_wt_dir")" && pwd)"
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+    [[ -f "$_git_wt_dir/completions/git-wt.zsh" ]] && source "$_git_wt_dir/completions/git-wt.zsh"
+elif [[ -n "${BASH_VERSION:-}" ]]; then
+    [[ -f "$_git_wt_dir/completions/git-wt.bash" ]] && source "$_git_wt_dir/completions/git-wt.bash"
+fi
+unset _git_wt_dir
+
 wt() {
     case "${1:-}" in
         add)
