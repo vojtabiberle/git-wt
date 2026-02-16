@@ -6,6 +6,9 @@ set -euo pipefail
 # For cd support, source git-wt.sh in your .zshrc / .bashrc
 
 readonly VERSION="1.0.0"
+readonly UPDATE_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/git-wt/update-check"
+readonly UPDATE_CHECK_INTERVAL=86400 # 24 hours
+readonly VERSION_URL="https://raw.githubusercontent.com/vojtabiberle/git-wt/master/VERSION"
 
 # Colors (stderr only)
 RED='\033[0;31m'
@@ -365,9 +368,52 @@ HELP
 }
 
 # ---------------------------------------------------------------------------
+# Update check
+# ---------------------------------------------------------------------------
+version_gt() {
+    [[ "$(printf '%s\n' "$1" "$2" | sort -V | tail -n1)" == "$1" && "$1" != "$2" ]]
+}
+
+check_for_update() {
+    mkdir -p "$(dirname "$UPDATE_CACHE")"
+
+    # Skip if checked recently
+    if [[ -f "$UPDATE_CACHE" ]]; then
+        local last_check now
+        last_check="$(stat -c %Y "$UPDATE_CACHE" 2>/dev/null || stat -f %m "$UPDATE_CACHE" 2>/dev/null || echo 0)"
+        now="$(date +%s)"
+        if (( now - last_check < UPDATE_CHECK_INTERVAL )); then
+            return
+        fi
+    fi
+
+    # Fetch remote version in background, update cache
+    (
+        remote_version="$(curl -fsSL --max-time 5 "$VERSION_URL" 2>/dev/null | tr -d '[:space:]')" || exit 0
+        if [[ -n "$remote_version" ]]; then
+            echo "$remote_version" > "$UPDATE_CACHE"
+        fi
+    ) &>/dev/null &
+    disown 2>/dev/null
+}
+
+show_update_notice() {
+    if [[ -f "$UPDATE_CACHE" ]]; then
+        local remote_version
+        remote_version="$(tr -d '[:space:]' < "$UPDATE_CACHE")"
+        if version_gt "$remote_version" "$VERSION"; then
+            warn "Update available: ${BOLD}${VERSION}${NC} → ${GREEN}${remote_version}${NC}  (${CYAN}${VERSION_URL%/VERSION}${NC})"
+        fi
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # Main dispatch
 # ---------------------------------------------------------------------------
 main() {
+    show_update_notice
+    check_for_update
+
     local cmd="${1:-help}"
     shift || true
 
