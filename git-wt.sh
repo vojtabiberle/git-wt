@@ -17,7 +17,18 @@ fi
 unset _git_wt_dir
 
 wt() {
-    case "${1:-}" in
+    # Find the subcommand, skipping any leading global flags
+    local cmd=""
+    local arg
+    for arg in "$@"; do
+        case "$arg" in
+            --non-interactive|--yes|--help|-h) ;;
+            -*) cmd="$arg"; break ;;
+            *)  cmd="$arg"; break ;;
+        esac
+    done
+
+    case "$cmd" in
         add)
             local output
             output="$(git wt "$@")" || return $?
