@@ -1,2 +1,7 @@
 *.swp
 *~
+# Local config
+worktree.conf.local
+# OS generated files
+.DS_Store
+Thumbs.db
