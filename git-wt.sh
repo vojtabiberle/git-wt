@@ -22,7 +22,8 @@ wt() {
     local arg
     for arg in "$@"; do
         case "$arg" in
-            --non-interactive|--yes|--help|-h) ;;
+            --non-interactive|--yes) ;;
+            --help|-h) cmd="help"; break ;;
             -*) cmd="$arg"; break ;;
             *)  cmd="$arg"; break ;;
         esac
