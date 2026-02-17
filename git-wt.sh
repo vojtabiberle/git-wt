@@ -17,15 +17,14 @@ fi
 unset _git_wt_dir
 
 wt() {
-    # Find the subcommand, skipping any leading global flags
+    # Mirror git-wt's arg parsing: scan all args, --help anywhere forces help
     local cmd=""
     local arg
     for arg in "$@"; do
         case "$arg" in
             --non-interactive|--yes) ;;
-            --help|-h) cmd="help"; break ;;
-            -*) cmd="$arg"; break ;;
-            *)  cmd="$arg"; break ;;
+            --help|-h) cmd="help" ;;
+            *)  [[ -z "$cmd" ]] && cmd="$arg" ;;
         esac
     done
 
