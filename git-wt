@@ -466,35 +466,43 @@ main() {
     show_update_notice
     check_for_update
 
-    local cmd="${1:-help}"
-    shift || true
+    local cmd=""
+    local args=()
 
-    # Parse global flags
+    # Parse all arguments, extracting global flags from any position
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --non-interactive|--yes)
                 NON_INTERACTIVE=true
                 YES=true
-                shift
                 ;;
-            --force|-f)
-                # Already handled by individual commands
-                shift
+            --help|-h)
+                cmd="help"
+                ;;
+            -*)
+                # Pass unknown flags through to subcommand
+                args+=("$1")
                 ;;
             *)
-                break
+                if [[ -z "$cmd" ]]; then
+                    cmd="$1"
+                else
+                    args+=("$1")
+                fi
                 ;;
         esac
+        shift
     done
 
+    cmd="${cmd:-help}"
+
     case "$cmd" in
-        add)    cmd_add "$@" ;;
-        rm)     cmd_rm "$@" ;;
-        cd)     cmd_cd "$@" ;;
-        ls)     cmd_ls "$@" ;;
-        init)   cmd_init "$@" ;;
-        help|--help|-h)
-                cmd_help ;;
+        add)    cmd_add ${args[@]+"${args[@]}"} ;;
+        rm)     cmd_rm ${args[@]+"${args[@]}"} ;;
+        cd)     cmd_cd ${args[@]+"${args[@]}"} ;;
+        ls)     cmd_ls ${args[@]+"${args[@]}"} ;;
+        init)   cmd_init ${args[@]+"${args[@]}"} ;;
+        help)   cmd_help ;;
         *)
             error "Unknown command: $cmd"
             cmd_help
