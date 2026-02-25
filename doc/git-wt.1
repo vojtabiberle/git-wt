@@ -1,0 +1,183 @@
+.TH GIT\-WT 1 "2026-02-25" "git-wt 1.0.0" "Git Manual"
+.
+.SH NAME
+git\-wt \- Git worktree helper
+.
+.SH SYNOPSIS
+.B git wt
+.I <command>
+.RI [ args... ]
+.
+.SH DESCRIPTION
+.B git\-wt
+combines worktree creation, setup, and navigation into a single command.
+It manages worktree directories with configurable naming, runs setup
+commands after creation, and integrates with a shell wrapper for
+automatic directory change.
+.
+.SH COMMANDS
+.TP
+.BI add " <branch>" "\fR [" source ]\fR
+Create a worktree for
+.IR branch .
+If
+.I source
+is given, the new branch starts there.
+If the branch exists on
+.B origin
+but not locally, you will be prompted to use it.
+.
+.TP
+.BI rm " \fR[" branch ]\fR
+Remove a worktree.
+Without arguments, removes the current worktree (auto\-detected from
+the working directory).
+.
+.TP
+.BI cd " <branch>"
+Print the worktree path for
+.IR branch .
+Use the shell wrapper for actual directory change.
+.
+.TP
+.B ls
+List all worktrees
+.RB ( "git worktree list" ).
+.
+.TP
+.B init
+Interactively create
+.BR worktree.conf.local .
+.
+.TP
+.B help
+Show brief usage information.
+.
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show help.
+Note that
+.B git wt \-\-help
+opens this man page (standard Git behavior), while
+.B git wt \-h
+shows the built\-in usage summary.
+.
+.TP
+.BR \-\-non\-interactive ", " \-\-yes
+Suppress all interactive prompts and use default behavior.
+.
+.TP
+.BR \-f ", " \-\-force
+Force overwrite or removal without confirmation.
+Used with the
+.B rm
+command.
+.
+.SH CONFIGURATION
+Per\-project config files are read from the main repository root:
+.
+.TP
+.B worktree.conf
+Committed project defaults.
+.
+.TP
+.B worktree.conf.local
+Personal overrides, intended to be gitignored.
+.
+.PP
+The following variables can be set in config files:
+.
+.TP
+.BI WORKTREE_DIR= path
+Base directory for worktrees.
+Default:
+.BR ".." " (parent of the repo root)."
+.
+.TP
+.BI WORKTREE_PREFIX= name
+Directory name prefix.
+Default: the repository directory name.
+.
+.TP
+.BI WORKTREE_SETUP= "(cmd1 cmd2 ...)"
+Array of shell commands to run inside the new worktree after creation.
+.
+.SS Directory naming
+Worktree directories are named
+.IR <base>/<prefix>\-<sanitized\-branch> .
+Branch names are sanitized by replacing
+.B /
+with
+.B \-
+and lowercasing.
+.
+.PP
+Example:
+.B ../myapp\-feature\-login
+.
+.SH INSTALLATION
+Add the project directory to your
+.BR PATH :
+.
+.RS 4
+.nf
+export PATH="$HOME/Projects/git\-wt:$PATH"
+.fi
+.RE
+.
+.PP
+Source the shell wrapper for
+.B cd
+support:
+.
+.RS 4
+.nf
+source ~/Projects/git\-wt/git\-wt.sh
+.fi
+.RE
+.
+.PP
+This defines the
+.B wt
+shell function that wraps
+.B git wt
+and adds automatic directory change for
+.B add
+and
+.BR cd .
+.
+.PP
+Alternatively, use a git alias (no cd support):
+.
+.RS 4
+.nf
+git config \-\-global alias.wt \(aq!git\-wt\(aq
+.fi
+.RE
+.
+.PP
+To install the man page so that
+.B git wt \-\-help
+works:
+.
+.RS 4
+.nf
+make install\-man
+.fi
+.RE
+.
+.SH EXAMPLES
+.nf
+git wt add feature/login master
+git wt ls
+git wt rm feature/login
+git wt init
+
+# With shell wrapper:
+wt add feature/login master   # creates + cd\(aqs into worktree
+wt cd feature/login           # cd into existing worktree
+.fi
+.
+.SH SEE ALSO
+.BR git\-worktree (1)
