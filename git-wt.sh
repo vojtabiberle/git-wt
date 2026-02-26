@@ -34,7 +34,7 @@ wt() {
             output="$(git wt "$@")" || return $?
             echo "$output"
             local path
-            path="$(echo "$output" | tail -1)"
+            path="${output##*$'\n'}"
             [[ -d "$path" ]] && cd "$path"
             ;;
         cd)
