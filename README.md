@@ -50,6 +50,7 @@ git-wt uses two shell-sourceable config files in each project's repo root:
 WORKTREE_DIR=".."
 WORKTREE_PREFIX="myapp"
 WORKTREE_SETUP=("./setup.sh")
+WORKTREE_TEARDOWN=("./teardown.sh")
 ```
 
 **`worktree.conf.local`** — personal overrides (gitignored):
@@ -57,6 +58,7 @@ WORKTREE_SETUP=("./setup.sh")
 ```bash
 WORKTREE_DIR="/home/me/worktrees"
 WORKTREE_SETUP=("./setup.sh" "direnv allow")
+WORKTREE_TEARDOWN=("docker compose down")
 ```
 
 The script sources `worktree.conf` first, then `worktree.conf.local`. Later values fully replace earlier ones.
@@ -68,6 +70,7 @@ The script sources `worktree.conf` first, then `worktree.conf.local`. Later valu
 | `WORKTREE_DIR` | `..` | Base directory for worktrees (relative to repo root) |
 | `WORKTREE_PREFIX` | repo name | Prefix for worktree directory names |
 | `WORKTREE_SETUP` | `()` | Commands to run after creating a worktree |
+| `WORKTREE_TEARDOWN` | `()` | Commands to run before removing a worktree |
 
 ### Directory naming
 

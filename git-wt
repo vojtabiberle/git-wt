@@ -83,6 +83,7 @@ load_config() {
     WORKTREE_DIR=".."
     WORKTREE_PREFIX=""
     WORKTREE_SETUP=()
+    WORKTREE_TEARDOWN=()
 
     # Auto-detect prefix from repo directory name
     local repo_name
@@ -252,6 +253,16 @@ cmd_rm() {
         exit 1
     fi
 
+    load_config
+
+    if [[ ${#WORKTREE_TEARDOWN[@]} -gt 0 ]]; then
+        info "Running teardown commands..."
+        for cmd in "${WORKTREE_TEARDOWN[@]}"; do
+            info "  -> $cmd"
+            (cd "$wt_path" && eval "$cmd")
+        done
+    fi
+
     info "Removing worktree at: $wt_path"
     if $force; then
         git worktree remove --force "$wt_path"
@@ -331,6 +342,28 @@ cmd_init() {
         all_setup+=("$cmd")
     done
 
+    echo >&2
+    info "Enter teardown commands to run before worktree removal (empty line to finish)."
+    info "Default teardown: ${WORKTREE_TEARDOWN[*]:-<none>}"
+    local extra_teardown_cmds=()
+    while true; do
+        if ! confirm_default_no "Add command?"; then
+            break
+        fi
+        read -rp "  command> " cmd
+        [[ -z "$cmd" ]] && break
+        extra_teardown_cmds+=("$cmd")
+    done
+
+    # Build teardown array
+    local all_teardown=()
+    if [[ ${#WORKTREE_TEARDOWN[@]} -gt 0 ]]; then
+        all_teardown=("${WORKTREE_TEARDOWN[@]}")
+    fi
+    for cmd in "${extra_teardown_cmds[@]}"; do
+        all_teardown+=("$cmd")
+    done
+
     # Write config
     {
         echo "# worktree.conf.local — personal overrides (gitignored)"
@@ -345,6 +378,14 @@ cmd_init() {
         if [[ ${#all_setup[@]} -gt 0 ]]; then
             echo "WORKTREE_SETUP=("
             for cmd in "${all_setup[@]}"; do
+                echo "    \"$cmd\""
+            done
+            echo ")"
+        fi
+        if [[ ${#all_teardown[@]} -gt 0 ]]; then
+            echo ""
+            echo "WORKTREE_TEARDOWN=("
+            for cmd in "${all_teardown[@]}"; do
                 echo "    \"$cmd\""
             done
             echo ")"
@@ -381,6 +422,7 @@ CONFIGURATION
         WORKTREE_DIR="..."          Base directory (default: "..")
         WORKTREE_PREFIX="..."       Directory name prefix (default: repo name)
         WORKTREE_SETUP=(...)        Commands to run after creating a worktree
+        WORKTREE_TEARDOWN=(...)    Commands to run before removing a worktree
 
     Directory naming: <base>/<prefix>-<sanitized-branch>
     Example: ../myapp-feature-login

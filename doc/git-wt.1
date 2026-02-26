@@ -103,6 +103,10 @@ Default: the repository directory name.
 .BI WORKTREE_SETUP= "(cmd1 cmd2 ...)"
 Array of shell commands to run inside the new worktree after creation.
 .
+.TP
+.BI WORKTREE_TEARDOWN= "(cmd1 cmd2 ...)"
+Array of shell commands to run inside the worktree before removal.
+.
 .SS Directory naming
 Worktree directories are named
 .IR <base>/<prefix>\-<sanitized\-branch> .
