@@ -28,6 +28,16 @@ If the branch exists on
 but not locally, you will be prompted to use it.
 .
 .TP
+.BI pr " <number>"
+Create a worktree from a GitHub pull request or GitLab merge request by number.
+The branch name is resolved automatically using
+.B gh
+(GitHub) or
+.B glab
+(GitLab), then fetched and passed to
+.BR add .
+.
+.TP
 .BI rm " \fR[" branch ]\fR
 Remove a worktree.
 Without arguments, removes the current worktree (auto\-detected from

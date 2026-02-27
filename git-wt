@@ -155,6 +155,22 @@ current_worktree_branch() {
     git rev-parse --abbrev-ref HEAD 2>/dev/null
 }
 
+detect_forge() {
+    local url
+    url="$(git remote get-url origin 2>/dev/null)" \
+        || { error "No 'origin' remote found"; exit 1; }
+
+    case "$url" in
+        *github.com*)  echo "github" ;;
+        *gitlab*)      echo "gitlab" ;;
+        *)
+            error "Cannot detect forge from remote URL: $url"
+            error "Only GitHub and GitLab are supported."
+            exit 1
+            ;;
+    esac
+}
+
 # ---------------------------------------------------------------------------
 # Subcommands
 # ---------------------------------------------------------------------------
@@ -225,6 +241,54 @@ cmd_add() {
     info "Worktree ready at: $wt_path"
     # Print path as last line to stdout (for shell wrapper to capture)
     echo "$wt_path"
+}
+
+cmd_pr() {
+    if [[ $# -lt 1 ]]; then
+        error "Usage: git wt pr <number>"
+        exit 1
+    fi
+
+    local number="$1"
+
+    if ! [[ "$number" =~ ^[1-9][0-9]*$ ]]; then
+        error "Invalid PR/MR number: $number (must be a positive integer)"
+        exit 1
+    fi
+
+    local forge branch
+    forge="$(detect_forge)"
+
+    case "$forge" in
+        github)
+            if ! command -v gh &>/dev/null; then
+                error "GitHub CLI (gh) is required but not installed."
+                error "Install it from: https://cli.github.com/"
+                exit 1
+            fi
+            branch="$(gh pr view "$number" --json headRefName -q .headRefName)" \
+                || { error "Failed to get branch for PR #$number"; exit 1; }
+            ;;
+        gitlab)
+            if ! command -v glab &>/dev/null; then
+                error "GitLab CLI (glab) is required but not installed."
+                error "Install it from: https://gitlab.com/gitlab-org/cli"
+                exit 1
+            fi
+            branch="$(glab mr view "$number" -F json | sed -n 's/.*"source_branch":"\([^"]*\)".*/\1/p')" \
+                || { error "Failed to get branch for MR !$number"; exit 1; }
+            ;;
+    esac
+
+    if [[ -z "$branch" ]]; then
+        error "Could not determine branch name for $( [[ "$forge" == "github" ]] && echo "PR #$number" || echo "MR !$number" )"
+        exit 1
+    fi
+
+    info "PR/MR #$number → branch '$branch'"
+    git fetch origin "$branch" || { error "Failed to fetch branch '$branch'"; exit 1; }
+
+    cmd_add "$branch"
 }
 
 cmd_rm() {
@@ -406,6 +470,8 @@ USAGE
 COMMANDS
     add <branch> [source]   Create a worktree for <branch>.
                              If [source] is given, the new branch starts there.
+    pr  <number>            Create a worktree from a GitHub PR or GitLab MR.
+                             Requires gh (GitHub) or glab (GitLab) CLI.
     rm  [branch]            Remove a worktree. Without args, removes the
                              current worktree (auto-detected).
     cd  <branch>            Print the worktree path (use shell wrapper for cd).
@@ -540,6 +606,7 @@ main() {
 
     case "$cmd" in
         add)    cmd_add ${args[@]+"${args[@]}"} ;;
+        pr)     cmd_pr ${args[@]+"${args[@]}"} ;;
         rm)     cmd_rm ${args[@]+"${args[@]}"} ;;
         cd)     cmd_cd ${args[@]+"${args[@]}"} ;;
         ls)     cmd_ls ${args[@]+"${args[@]}"} ;;

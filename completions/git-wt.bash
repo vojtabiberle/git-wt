@@ -27,7 +27,7 @@ _git_wt() {
 
     # Complete subcommands
     if [[ -z "$subcmd" ]]; then
-        COMPREPLY=( $(compgen -W "add rm cd ls init help" -- "$cur") )
+        COMPREPLY=( $(compgen -W "add pr rm cd ls init help" -- "$cur") )
         return
     fi
 
@@ -64,7 +64,7 @@ _wt() {
     done
 
     if [[ -z "$subcmd" ]]; then
-        COMPREPLY=( $(compgen -W "add rm cd ls init help" -- "$cur") )
+        COMPREPLY=( $(compgen -W "add pr rm cd ls init help" -- "$cur") )
         return
     fi
 
