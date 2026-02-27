@@ -29,7 +29,7 @@ wt() {
     done
 
     case "$cmd" in
-        add)
+        add|pr)
             local output
             output="$(git wt "$@")" || return $?
             echo "$output"

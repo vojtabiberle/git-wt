@@ -17,6 +17,7 @@ _git-wt() {
     local -a subcommands
     subcommands=(
         'add:Create a worktree for a branch'
+        'pr:Create worktree from PR/MR number'
         'rm:Remove a worktree'
         'cd:cd into an existing worktree'
         'ls:List all worktrees'
