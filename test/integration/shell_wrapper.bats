@@ -3,6 +3,8 @@
 setup() {
     load ../test_helper
     setup_test_repo
+    # git-wt must be on PATH for `git wt` subcommand to work
+    export PATH="$(dirname "$GIT_WT"):$PATH"
 }
 
 teardown() {
