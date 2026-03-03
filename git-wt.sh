@@ -33,9 +33,9 @@ wt() {
             local output
             output="$(git wt "$@")" || return $?
             echo "$output"
-            local path
-            path="${output##*$'\n'}"
-            [[ -d "$path" ]] && cd "$path"
+            local wt_dir
+            wt_dir="${output##*$'\n'}"
+            [[ -d "$wt_dir" ]] && cd "$wt_dir"
             ;;
         cd)
             local dir
