@@ -159,13 +159,27 @@ current_worktree_branch() {
 # Subcommands
 # ---------------------------------------------------------------------------
 cmd_add() {
-    if [[ $# -lt 1 ]]; then
-        error "Usage: git wt add <branch> [source-branch]"
+    local branch=""
+    local source=""
+    local force=false
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --force|-f) force=true ;;
+            *) if [[ -z "$branch" ]]; then
+                   branch="$1"
+               elif [[ -z "$source" ]]; then
+                   source="$1"
+               fi
+               ;;
+        esac
+        shift
+    done
+
+    if [[ -z "$branch" ]]; then
+        error "Usage: git wt add [-f|--force] <branch> [source-branch]"
         exit 1
     fi
-
-    local branch="$1"
-    local source="${2:-}"
 
     load_config
 
@@ -191,6 +205,16 @@ cmd_add() {
 
     # Create worktree
     if branch_exists "$branch"; then
+        if [[ -n "$source" ]]; then
+            if $force; then
+                warn "Branch '$branch' already exists. Resetting it to '$source'."
+                git branch -f "$branch" "$source"
+            else
+                error "Branch '$branch' already exists (source '$source' ignored)."
+                error "Use ${BOLD}--force${NC} to reset the branch to '$source'."
+                exit 1
+            fi
+        fi
         info "Branch '$branch' exists, checking out into worktree..."
         git worktree add "$wt_path" "$branch"
     else
@@ -406,6 +430,8 @@ USAGE
 COMMANDS
     add <branch> [source]   Create a worktree for <branch>.
                              If [source] is given, the new branch starts there.
+                             If the branch already exists, use --force to reset
+                             it to [source].
     rm  [branch]            Remove a worktree. Without args, removes the
                              current worktree (auto-detected).
     cd  <branch>            Print the worktree path (use shell wrapper for cd).
