@@ -2,7 +2,7 @@ PREFIX  ?= /usr/local
 BINDIR  ?= $(PREFIX)/bin
 MANDIR  ?= $(PREFIX)/share/man
 
-.PHONY: install install-bin install-man uninstall uninstall-bin uninstall-man
+.PHONY: install install-bin install-man uninstall uninstall-bin uninstall-man test test-unit test-integration
 
 install: install-bin install-man
 
@@ -21,3 +21,12 @@ uninstall-bin:
 
 uninstall-man:
 	rm -f $(DESTDIR)$(MANDIR)/man1/git-wt.1
+
+test:
+	bats test/unit/ test/integration/
+
+test-unit:
+	bats test/unit/
+
+test-integration:
+	bats test/integration/

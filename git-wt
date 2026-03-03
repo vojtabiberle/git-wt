@@ -579,4 +579,6 @@ main() {
     esac
 }
 
-main "$@"
+if [[ -z "${__GIT_WT_TESTING:-}" ]]; then
+    main "$@"
+fi
