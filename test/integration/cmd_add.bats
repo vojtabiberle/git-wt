@@ -101,6 +101,16 @@ EOF
     assert [ -f "$wt_path/remote-file.txt" ]
 }
 
+@test "cmd_add: warns and continues when setup command fails" {
+    cat > "$TEST_REPO/worktree.conf" <<'EOF'
+WORKTREE_SETUP=("bin/nonexistent-script")
+EOF
+    run "$GIT_WT" --non-interactive add feature/bad-setup
+    assert_success
+    assert_output --partial "Setup command failed"
+    assert_output --partial "Worktree ready at:"
+}
+
 @test "cmd_add: directory conflict fails gracefully" {
     # Compute expected worktree path: WORKTREE_DIR defaults to ".." (parent of repo),
     # WORKTREE_PREFIX defaults to repo dirname ("repo"), branch sanitized

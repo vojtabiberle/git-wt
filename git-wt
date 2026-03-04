@@ -258,7 +258,7 @@ cmd_add() {
         info "Running setup commands..."
         for cmd in "${WORKTREE_SETUP[@]}"; do
             info "  -> $cmd"
-            (cd "$wt_path" && eval "$cmd")
+            (cd "$wt_path" && eval "$cmd") || warn "Setup command failed: $cmd (missing from worktree branch?)"
         done
     fi
 
@@ -344,11 +344,15 @@ cmd_rm() {
     load_config
 
     if [[ ${#WORKTREE_TEARDOWN[@]} -gt 0 ]]; then
-        info "Running teardown commands..."
-        for cmd in "${WORKTREE_TEARDOWN[@]}"; do
-            info "  -> $cmd"
-            (cd "$wt_path" && eval "$cmd")
-        done
+        if [[ -d "$wt_path" ]]; then
+            info "Running teardown commands..."
+            for cmd in "${WORKTREE_TEARDOWN[@]}"; do
+                info "  -> $cmd"
+                (cd "$wt_path" && eval "$cmd") || warn "Teardown command failed: $cmd (missing from worktree branch?)"
+            done
+        else
+            warn "Worktree directory not found, skipping teardown"
+        fi
     fi
 
     info "Removing worktree at: $wt_path"

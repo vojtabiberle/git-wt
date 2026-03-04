@@ -44,6 +44,33 @@ EOF
     assert [ -f "$BATS_TEST_TMPDIR/teardown-ran" ]
 }
 
+@test "cmd_rm: warns and continues when teardown command fails" {
+    cat > "$TEST_REPO/worktree.conf" <<'EOF'
+WORKTREE_TEARDOWN=("bin/nonexistent-script")
+EOF
+    "$GIT_WT" --non-interactive add feature/bad-teardown >/dev/null 2>&1
+
+    run "$GIT_WT" rm feature/bad-teardown
+    assert_success
+    assert_output --partial "Teardown command failed"
+    assert_output --partial "Worktree removed"
+}
+
+@test "cmd_rm: skips teardown when worktree directory is already gone" {
+    cat > "$TEST_REPO/worktree.conf" <<'EOF'
+WORKTREE_TEARDOWN=("echo should-not-run")
+EOF
+    local wt_path
+    wt_path="$("$GIT_WT" --non-interactive add feature/gone 2>/dev/null | tail -n1)"
+
+    # Manually remove the directory (simulating external deletion)
+    rm -rf "$wt_path"
+
+    run "$GIT_WT" rm --force feature/gone
+    assert_success
+    assert_output --partial "Worktree directory not found, skipping teardown"
+}
+
 @test "cmd_rm: fails without branch when not in worktree" {
     run "$GIT_WT" rm
     assert_failure
